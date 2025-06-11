@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WhatsApp Session File Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6fb; margin: 0; padding: 0; }
+    .container { max-width: 430px; margin: 50px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; padding: 32px; }
+    h1 { text-align: center; color: #25D366; }
+    label { display: block; font-weight: bold; margin-top: 18px; }
+    input[type="text"] { width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; }
+    button { width: 100%; background: #25D366; color: #fff; border: none; border-radius: 6px; padding: 12px; font-size: 1.1rem; margin-top: 18px; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #1ebc5a; }
+    .step, .status, .pair-code { margin-top: 24px; font-size: 1.05rem; }
+    .pair-code-display { font-size: 1.6rem; font-weight: bold; letter-spacing: 2px; background: #f1fff1; padding: 16px; margin-top: 12px; border-radius: 8px; color: #128c7e; text-align: center; }
+    .copy-btn { margin-top: 6px; background: #128c7e; font-size: 0.95rem; padding: 7px 14px; }
+    .loading { text-align: center; margin-top: 22px; }
+    @media (max-width: 600px) {
+      .container { padding: 18px; margin: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>WhatsApp Session Generator</h1>
+    <div class="step">Step 1: Enter your WhatsApp number (with country code, e.g., <strong>+94771234567</strong>)</div>
+    <label for="phone">WhatsApp Number</label>
+    <input type="text" id="phone" placeholder="+94xxxxxxxxx" autocomplete="tel">
+    <button onclick="startSession()">Get Pair Code</button>
+    <div class="loading" id="loading" style="display:none;">⏳ Generating pair code...</div>
+    <div class="pair-code" id="pair-code" style="display:none;">
+      <div>Step 2: Use this code in WhatsApp to log in as <span id="show-phone"></span>:</div>
+      <div class="pair-code-display" id="pair-code-display"></div>
+      <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let currentCode = "";
+    function startSession() {
+      const phone = document.getElementById('phone').value.trim();
+      document.getElementById('status').innerText = "";
+      if (!phone.match(/^\+?\d{7,15}$/)) {
+        document.getElementById('status').innerText = "❌ Please enter a valid WhatsApp number with country code.";
+        return;
+      }
+      document.getElementById('loading').style.display = "block";
+      document.getElementById('pair-code').style.display = "none";
+      socket.emit('start-session', phone);
+      document.getElementById('show-phone').innerText = phone;
+    }
+    socket.on('pairing-code', code => {
+      currentCode = code;
+      document.getElementById('loading').style.display = "none";
+      document.getElementById('pair-code').style.display = "block";
+      document.getElementById('pair-code-display').innerText = code;
+    });
+    socket.on('success', msg => {
+      document.getElementById('status').innerText = "✅ " + msg;
+      document.getElementById('loading').style.display = "none";
+      document.getElementById('pair-code').style.display = "none";
+    });
+    socket.on('error', msg => {
+      document.getElementById('status').innerText = "❌ " + msg;
+      document.getElementById('loading').style.display = "none";
+      document.getElementById('pair-code').style.display = "none";
+    });
+    function copyCode() {
+      navigator.clipboard.writeText(currentCode);
+      alert("Pair code copied!");
+    }
+  </script>
+</body>
+</html>
