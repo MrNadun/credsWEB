@@ -1,0 +1,16 @@
+{
+  "name": "whatsapp-session-app",
+  "version": "1.0.0",
+  "description": "Generate WhatsApp session files with a user-friendly web interface",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "author": "MrNadun",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.0",
+    "express": "^4.19.2",
+    "socket.io": "^4.7.2"
+  }
+}
